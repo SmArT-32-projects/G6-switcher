@@ -2,7 +2,7 @@
 
 """
 Sound BlasterX G6 Switcher
-https://github.com/SmArT-32-projects/g6-switcher
+https://github.com/SmArT-32-projects/G6-switcher
 
 Copyright (c) 2026 SmArT-32-projects
 MIT License
@@ -71,7 +71,7 @@ parser = argparse.ArgumentParser(
     prog="g6_switcher",
     description=f"'Sound BlasterX G6 Switcher v{SCRIPT_VERSION}'\n"
                 f"Automatic output and EasyEffects (PulseEffects) audio profile management for Sound BlasterX G6.\n\n"
-                f"GitHub: https://github.com/SmArT-32-projects/g6-switcher\n"
+                f"GitHub: https://github.com/SmArT-32-projects/G6-switcher\n"
                 f"Copyright (c) 2026 SmArT-32-projects | MIT License",
     epilog="Files and paths used by this script:\n"
            "  Configuration:                ~/.config/g6_switcher/config.json\n"
@@ -2096,7 +2096,7 @@ if not args.daemon:
     print("="*59)
     print(f" Powered by {ENGINE_INFO}\n")
     print(f" Use '-h' for help.\n")
-    print(" GitHub: https://github.com/SmArT-32-projects/g6-switcher")
+    print(" GitHub: https://github.com/SmArT-32-projects/G6-switcher")
     print(" Copyright (c) 2026 SmArT-32-projects | MIT License")
     print("="*59)
     print(f" Config path: {CONFIG_FILE}")
