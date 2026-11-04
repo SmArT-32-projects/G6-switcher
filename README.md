@@ -1,12 +1,14 @@
 # Sound BlasterX G6 Switcher
 
-Linux utility that automatically detects the active output of the **Creative Sound BlasterX G6** and switches the EasyEffects/PulseEffects output presets. Optional features provide headphone-volume management, dynamic Limiter adjustment and G6 hardware-profile switching.
+A Linux utility that automatically detects the active output of the **Creative Sound BlasterX G6** and switches EasyEffects/PulseEffects output presets. Optional features provide headphone-volume management, dynamic Limiter adjustment and G6 hardware-profile switching.
 
 **Supported hardware: Sound BlasterX G6 only (USB VID:PID `041e:3256`).** Other Sound Blaster models and USB audio devices are not supported.
 
+This is an independent community project. It is not affiliated with or endorsed by Creative Technology Ltd.
+
 ## Features
 
-- Automatic headphones/speakers preset switching.
+- Automatic headphone/speaker preset switching.
 - Default bypass / clean preset applied when switching away from the G6 to other outputs.
 - Optional headphone-volume save/restore and safe-volume handling.
 - Optional volume-dependent Limiter threshold adjustment.
@@ -18,21 +20,21 @@ Linux utility that automatically detects the active output of the **Creative Sou
 - Creative Sound BlasterX G6 (`041e:3256`) with accessible `/dev/hidraw*` nodes.
 - Python 3.7+.
 - PipeWire with `pipewire-pulse`, or PulseAudio (`pactl` is required).
-- EasyEffects 6.1.0+ or PulseEffects 4.8.1+ (both native and flatpak installations are supported).
+- EasyEffects 6.1.0+ or PulseEffects 4.8.1+ (both native and Flatpak installations are supported).
 - Three existing output presets: headphones, speakers, and a default preset (an empty/bypass preset for other outputs).
 
-### Dependencies for optional features:
+### Dependencies for optional features
 
 - `gsettings` from GLib for PulseEffects and GTK-based EasyEffects versions before 8.0.0.
 - `alsa-utils` (`amixer`) and WirePlumber 0.4+ for G6 hardware-profile switching.
 - `notify-send` for desktop notifications.
-- `usbreset` for recovery attempt when the initial G6 HID state cannot be read.
+- `usbreset` for an automatic recovery attempt when the initial G6 HID state cannot be read.
 
 The script uses the Python standard library; no `pip` installation is needed.
 
 ## Install
 
-Download `g6_switcher.py` or download and unpack the archive from the [latest GitHub Release](https://github.com/SmArT-32-projects/g6-switcher/releases/latest) and run:
+Download `g6_switcher.py` (or download and unpack the release archive from the [latest GitHub Release](https://github.com/SmArT-32-projects/g6-switcher/releases/latest)) and run:
 
 ```bash
 python3 g6_switcher.py --setup
@@ -57,7 +59,7 @@ systemctl --user status g6_switcher.service
 journalctl --user -xeu g6_switcher.service
 ```
 
-Apply configuration (~/.config/g6_switcher/config.json) changes:
+Apply configuration changes:
 
 ```bash
 systemctl --user reload g6_switcher.service
@@ -77,8 +79,6 @@ Uninstall the installed copy:
 ~/.local/bin/g6_switcher --uninstall
 ```
 
-The uninstaller asks whether to remove the configuration and prints a separate command if the udev rule needs to be removed.
-
 ## Known limitations
 
 - It is assumed that only one G6 card is physically connected to your machine at the same time.  
@@ -90,6 +90,6 @@ The uninstaller asks whether to remove the configuration and prints a separate c
 
 - [Configuration](docs/configuration.md)
 - [Troubleshooting](docs/troubleshooting.md)
-- [Bug reports and feature requests](https://github.com/SmArT-32-projects/g6-switcher/issues/new/choose)
+- [Report a bug or request a feature](https://github.com/SmArT-32-projects/g6-switcher/issues/new/choose)
 
-This is an independent community project. It is not affiliated with or endorsed by Creative Technology Ltd.
+Your feedback is highly appreciated!
