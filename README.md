@@ -1,6 +1,6 @@
 # Sound BlasterX G6 Switcher
 
-Linux utility that automatically detects the active output of the **Creative Sound BlasterX G6** and switches the EasyEffects/PulseEffects output preset, volume and hardware-profile.
+Linux utility that automatically detects the active output of the **Creative Sound BlasterX G6** and switches the EasyEffects/PulseEffects output presets. Optional features provide headphone-volume management, dynamic Limiter adjustment and G6 hardware-profile switching.
 
 **Supported hardware: Sound BlasterX G6 only (USB VID:PID `041e:3256`).** Other Sound Blaster models and USB audio devices are not supported.
 
@@ -21,7 +21,14 @@ Linux utility that automatically detects the active output of the **Creative Sou
 - EasyEffects 6.1.0+ or PulseEffects 4.8.1+ (both native and flatpak installations are supported).
 - Three existing output presets: headphones, speakers, and a default preset (an empty/bypass preset for other outputs).
 
-The script uses the Python standard library; no `pip` installation is needed. Optional features have extra dependencies; see [Installation](docs/installation.md) for details.
+### Dependencies for optional features:
+
+- `gsettings` from GLib for PulseEffects and GTK-based EasyEffects versions before 8.0.0.
+- `alsa-utils` (`amixer`) and WirePlumber 0.4+ for G6 hardware-profile switching.
+- `notify-send` for desktop notifications.
+- `usbreset` for recovery attempt when the initial G6 HID state cannot be read.
+
+The script uses the Python standard library; no `pip` installation is needed.
 
 ## Install
 
@@ -35,7 +42,11 @@ Create the three output presets in EasyEffects/PulseEffects before setup. The sc
 
 The wizard checks HID permissions, creates `~/.config/g6_switcher/config.json`, and offers to install the script as a systemd user service.
 
-The script can also be run directly from a terminal, but the setup wizard is the recommended starting point.
+You can decline the service installation and keep the script where it is to run it manually:
+
+```bash
+python3 g6_switcher.py
+```
 
 ## Service
 
@@ -54,7 +65,7 @@ systemctl --user reload g6_switcher.service
 
 ## Update / uninstall
 
-Download the new `g6_switcher.py` release asset, then run:
+Download the new `g6_switcher.py`, then run:
 
 ```bash
 python3 g6_switcher.py --update
@@ -77,7 +88,6 @@ The uninstaller asks whether to remove the configuration and prints a separate c
 
 ## Docs and support
 
-- [Installation](docs/installation.md)
 - [Configuration](docs/configuration.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Bug reports and feature requests](https://github.com/SmArT-32-projects/g6-switcher/issues/new/choose)
