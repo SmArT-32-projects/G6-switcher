@@ -21,7 +21,7 @@ Linux utility that automatically detects the active output of the **Creative Sou
 - EasyEffects 6.1.0+ or PulseEffects 4.8.1+ (both native and flatpak installations are supported).
 - Three existing output presets: headphones, speakers, and a default preset (an empty/bypass preset for other outputs).
 
-The script uses the Python standard library; no `pip` installation is needed. Optional features have extra dependencies; see [Installation](docs/installation.md).
+The script uses the Python standard library; no `pip` installation is needed. Optional features have extra dependencies; see [Installation](docs/installation.md) for details.
 
 ## Install
 
