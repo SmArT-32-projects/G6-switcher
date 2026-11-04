@@ -205,6 +205,42 @@ def uninstall():
     print("\nUninstallation complete!")
     sys.exit(0)
 
+def verify_service_status():
+    print("Verifying background service status...")
+    poll_deadline = time.monotonic() + 15
+    is_stable = False
+    last_status = "unknown"
+
+    while time.monotonic() < poll_deadline:
+        res = subprocess.run(["systemctl", "--user", "is-active", "g6_switcher.service"], capture_output=True, text=True)
+        last_status = res.stdout.strip()
+
+        if last_status == "active":
+            # Stability pause to catch immediate post-startup crashes
+            time.sleep(1.0)
+            check = subprocess.run(["systemctl", "--user", "is-active", "g6_switcher.service"], capture_output=True, text=True).stdout.strip()
+            if check == "active":
+                is_stable = True
+                break
+        elif last_status in ("failed", "inactive"):
+            # Fast-fail without waiting for full timeout
+            break
+
+        time.sleep(1.0)
+
+    if not is_stable:
+        journal_err = ""
+        try:
+            j_res = subprocess.run(
+                ["journalctl", "--user", "-u", "g6_switcher.service", "-n", "5", "--no-pager"],
+                capture_output=True, text=True, timeout=2
+            )
+            if j_res.stdout.strip():
+                journal_err = f"\nRecent logs:\n{j_res.stdout.strip()}"
+        except Exception:
+            pass
+        raise RuntimeError(f"Service status is '{last_status}'.{journal_err}")
+
 def update_installation():
     print("=" * 60)
     print(" Sound BlasterX G6 Switcher Updater ")
@@ -263,40 +299,7 @@ def update_installation():
                 err_detail = (restart_res.stderr or restart_res.stdout).strip()
                 raise RuntimeError(f"systemctl restart failed: {err_detail}")
 
-            print("Verifying background service status...")
-            poll_deadline = time.monotonic() + 15
-            is_stable = False
-            last_status = "unknown"
-
-            while time.monotonic() < poll_deadline:
-                res = subprocess.run(["systemctl", "--user", "is-active", "g6_switcher.service"], capture_output=True, text=True)
-                last_status = res.stdout.strip()
-
-                if last_status == "active":
-                    # Stability pause to catch immediate post-startup crashes
-                    time.sleep(1.0)
-                    check = subprocess.run(["systemctl", "--user", "is-active", "g6_switcher.service"], capture_output=True, text=True).stdout.strip()
-                    if check == "active":
-                        is_stable = True
-                        break
-                elif last_status in ("failed", "inactive"):
-                    # Fast-fail without waiting for full timeout
-                    break
-
-                time.sleep(1.0)
-
-            if not is_stable:
-                journal_err = ""
-                try:
-                    j_res = subprocess.run(
-                        ["journalctl", "--user", "-u", "g6_switcher.service", "-n", "5", "--no-pager"],
-                        capture_output=True, text=True, timeout=2
-                    )
-                    if j_res.stdout.strip():
-                        journal_err = f"\nRecent logs:\n{j_res.stdout.strip()}"
-                except Exception:
-                    pass
-                raise RuntimeError(f"Service status is '{last_status}'.{journal_err}")
+            verify_service_status()
                 
             print(f"Update to version v{SCRIPT_VERSION} complete!")
             if backup_path.exists():
@@ -553,7 +556,7 @@ WantedBy=graphical-session.target
 def setup_autostart():
     print("\n--- Installation & Autostart ---")
     if not prompt_bool("Do you want to install this script and add it to autostart (systemd user service)?", True):
-        return False
+        return False, False
         
     # Copy the script to standard user bin directory
     bin_dir = Path.home() / ".local" / "bin"
@@ -569,7 +572,7 @@ def setup_autostart():
             print(f"Script installed to: {install_path}")
         except Exception as e:
             print(f"Failed to copy script to {install_path}: {e}")
-            return False
+            return True, False
     else:
         print(f"Script is already located in {install_path}")
     
@@ -581,14 +584,22 @@ def setup_autostart():
     try:
         with open(service_file, 'w') as f:
             f.write(service_content)
-        subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
-        subprocess.run(["systemctl", "--user", "enable", "g6_switcher.service"], check=True)
-        subprocess.run(["systemctl", "--user", "restart", "g6_switcher.service"], check=True)
+        subprocess.run(["systemctl", "--user", "daemon-reload"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["systemctl", "--user", "enable", "g6_switcher.service"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        restart_res = subprocess.run(["systemctl", "--user", "restart", "g6_switcher.service"], capture_output=True, text=True)
+        
+        if restart_res.returncode != 0:
+            err_detail = (restart_res.stderr or restart_res.stdout).strip()
+            raise RuntimeError(f"systemctl restart failed: {err_detail}")
+            
+        verify_service_status()
+        
         print(f"Successfully created and started systemd service: {service_file}")
-        return True
+        return True, True
+    
     except Exception as e:
         print(f"Failed to setup autostart: {e}")
-        return False
+        return True, False
 
 def run_setup_wizard(config_file, config_dir):
     print("=" * 60)
@@ -600,6 +611,7 @@ def run_setup_wizard(config_file, config_dir):
     
     log_lvl = prompt_string("\nEnter the logging level (INFO, DEBUG, WARNING, ERROR)", "INFO").upper()
 
+    print("\n--- Presets Setup ---")
     print("\nThe script uses a strict priority order to detect EasyEffects or PulseEffects installations:")
     print("  1. EasyEffects (Flatpak)")
     print("  2. PulseEffects (Flatpak)")
@@ -637,9 +649,9 @@ def run_setup_wizard(config_file, config_dir):
     save_hp = prompt_bool("Save and restore the previous headphones volume?", True)
     if save_hp:
         use_safe = False
-        print("Enter a fallback volume percentage (used on initial launch, if the state file")
-        print("is missing/corrupted, or in case of audio server query timeouts).")
-        safe_vol = prompt_int("Fallback volume percentage", 25)
+        print("The script uses a fallback volume on initial launch, if the state file")
+        print("is missing/corrupted, or in case of audio server query timeouts.")
+        safe_vol = prompt_int("Enter a fallback volume percentage", 25)
     else:
         use_safe = prompt_bool("Always enforce a fixed safe volume when headphones are connected?", True)
         if use_safe:
@@ -648,6 +660,7 @@ def run_setup_wizard(config_file, config_dir):
             safe_vol = 25  # Internal safety fallback for pactl query timeouts
             print("Automatic volume adjustment disabled. System volume will remain untouched during switches.")
     
+    print("\n--- Dynamic Limiter Setup ---")
     use_limiter = prompt_bool("Use a dynamic limiter for headphones to prevent clipping at high volume levels?", False)
     if use_limiter:
         print("\nThe Limiter filter must be present and enabled in the HEADPHONES preset in EasyEffects or PulseEffects.")
@@ -703,13 +716,17 @@ def run_setup_wizard(config_file, config_dir):
         
     print(f"\nConfiguration saved to {config_file}")
     
-    service_started = setup_autostart()
+    wants_service, service_started = setup_autostart()
     print("\nSetup complete!")
 
-    if service_started:
-        print("Background service has been successfully started via systemd.")
+    if wants_service:
+        if service_started:
+            print("Background service has been successfully started via systemd.")
+        else:
+            print("Background service installation was requested, but failed to start.")
+            print("Please check service logs (journalctl --user -xeu g6_switcher.service) for details.")
         print("Exiting interactive setup mode...")
-        sys.exit(0)
+        sys.exit(0 if service_started else 1)
 
     return config
 
