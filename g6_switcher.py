@@ -2244,6 +2244,11 @@ try:
                     # Device was physically disconnected
                     refresh_hid_nodes()
                     continue
+
+                if not data:
+                    # Handle EOF to prevent busy-looping if device was disconnected without error
+                    refresh_hid_nodes()
+                    continue
                 
                 if not g6_active:
                     continue
