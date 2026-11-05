@@ -97,7 +97,7 @@ def send_notification(message, icon="audio-card"):
             icon="audio-card"
         try: 
             result = subprocess.run(
-                ["notify-send", "Sound BlasterX G6 Switcher", message, "-i", icon],
+                ["notify-send", "-a", "G6 Switcher", "Sound BlasterX G6 Switcher", message, "-i", icon],
                 timeout=0.5, capture_output=True, text=True
             )
             if result.returncode != 0:
@@ -174,7 +174,11 @@ def uninstall():
         print("\n--- System Files Detected ---")
         print("To completely remove the hardware permissions (udev rules), run this command in your terminal:")
         print(f"    sudo rm -f {udev_file} && sudo udevadm control --reload-rules && sudo udevadm trigger")
-        prompt_string("\nPress Enter to continue...", "")
+        try:
+            input("\nPress Enter to continue...")
+        except KeyboardInterrupt:
+            print("\nInterrupted.")
+            sys.exit(0)
     
     config_dir = Path.home() / ".config" / "g6_switcher"
     if config_dir.exists() and config_dir.is_dir():
@@ -586,6 +590,16 @@ def setup_autostart():
             f.write(service_content)
         subprocess.run(["systemctl", "--user", "daemon-reload"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run(["systemctl", "--user", "enable", "g6_switcher.service"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # Release the lock before starting the service so the new daemon can acquire it
+        if "app_lock" in globals():
+            try:
+                fcntl.lockf(globals()["app_lock"], fcntl.LOCK_UN)
+                globals()["app_lock"].close()
+                del globals()["app_lock"]
+            except Exception:
+                pass
+        
         restart_res = subprocess.run(["systemctl", "--user", "restart", "g6_switcher.service"], capture_output=True, text=True)
         
         if restart_res.returncode != 0:
@@ -612,13 +626,13 @@ def run_setup_wizard(config_file, config_dir):
     log_lvl = prompt_string("\nEnter the logging level (INFO, DEBUG, WARNING, ERROR)", "INFO").upper()
 
     print("\n--- Presets Setup ---")
-    print("\nThe script uses a strict priority order to detect EasyEffects or PulseEffects installations:")
+    print("The script uses a strict priority order to detect EasyEffects or PulseEffects installations:")
     print("  1. EasyEffects (Flatpak)")
     print("  2. PulseEffects (Flatpak)")
     print("  3. EasyEffects (Native)")
     print("  4. PulseEffects (Native)")
     print("The first matching application found will be selected automatically.")
-    print("Please keep this in mind if you have multiple versions installed in parallel.\n")
+    print("Please keep this in mind if you have multiple versions installed in parallel.")
     
     print("\nNext the wizard will ask for the names of the output presets")
     print("that must already exist in EasyEffects or PulseEffects:")
@@ -626,7 +640,7 @@ def run_setup_wizard(config_file, config_dir):
     print("  - Speakers preset")
     print("  - Default preset (recommended to be an empty preset without plugins,")
     print("    used to bypass effects when switching away from the G6)")
-    print("Create and configure them manually in the application before continuing.\n")
+    print("Create and configure them manually in the application before continuing.")
     
     print("\nImportant: Do not bind these presets to the Sound BlasterX G6 or any other specific sound card.")
     print("Otherwise automatic switching will not work correctly.\n")
@@ -649,7 +663,7 @@ def run_setup_wizard(config_file, config_dir):
     save_hp = prompt_bool("Save and restore the previous headphones volume?", True)
     if save_hp:
         use_safe = False
-        print("The script uses a fallback volume on initial launch, if the state file")
+        print("\nThe script uses a fallback volume on initial launch, if the state file")
         print("is missing/corrupted, or in case of audio server query timeouts.")
         safe_vol = prompt_int("Enter a fallback volume percentage", 25)
     else:
@@ -665,7 +679,7 @@ def run_setup_wizard(config_file, config_dir):
     if use_limiter:
         print("\nThe Limiter filter must be present and enabled in the HEADPHONES preset in EasyEffects or PulseEffects.")
         print("Otherwise, this feature has no effect. The script only adjusts the limiter threshold;")
-        print("it is unable to add or enable the filter automatically.\n")
+        print("it is unable to add or enable the filter automatically.")
         
         print("\nNote: The dynamic limiter works only on the preset assigned to HEADPHONES.")
         print("It is automatically disabled when switching to SPEAKERS (Line Out / S-PDIF) or any other preset.")
@@ -676,7 +690,7 @@ def run_setup_wizard(config_file, config_dir):
     else:
         limiter_offsets = {"100": 0.0}
         
-    use_hw = prompt_bool("Enable automatic ALSA hardware profile switching? (allows using the optical (S/PDIF) output for speakers while keeping Direct Mode for headphones)", False)
+    use_hw = prompt_bool("\nEnable automatic ALSA hardware profile switching? (allows using the optical (S/PDIF) output for speakers while keeping Direct Mode for headphones)", False)
     if use_hw:
         if shutil.which("wireplumber"):
             wp_version = get_wireplumber_version()
@@ -689,7 +703,7 @@ def run_setup_wizard(config_file, config_dir):
             print("Hardware profile switching requires WirePlumber to handle dynamic sample rates. 'use_hardware_profiles' automatically disabled.")
             use_hw = False
         
-    dsp_warn = prompt_bool("Show a notification when the script detects that the Sound BlasterX G6 has booted in hardware DSP mode?", False)
+    dsp_warn = prompt_bool("\nShow a notification when the script detects that the Sound BlasterX G6 has booted in hardware DSP mode?", False)
     
     config = {
         "log_level": log_lvl,
