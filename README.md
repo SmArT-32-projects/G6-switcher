@@ -78,7 +78,7 @@ python3 g6_switcher.py --update
 Uninstall the installed copy:
 
 ```bash
-~/.local/bin/g6_switcher --uninstall
+g6_switcher --uninstall
 ```
 
 ## Known limitations
