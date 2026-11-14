@@ -11,7 +11,7 @@ assignees: ''
 
 - [ ] I have read the [Known limitations](https://github.com/SmArT-32-projects/g6-switcher#known-limitations) section in the README.
 - [ ] I have reviewed the [Troubleshooting guide](https://github.com/SmArT-32-projects/g6-switcher/blob/main/docs/troubleshooting.md).
-- [ ] Firmware of my Sound BlasterX G6 is updated to the latest version.
+- [ ] My Sound BlasterX G6 is running the latest firmware.
 - [ ] My sound card is recognized in `cat /proc/asound/cards`.
 
 **Describe the bug**
@@ -35,6 +35,7 @@ Set `"log_level": "DEBUG"` in `~/.config/g6_switcher/config.json`, reload the se
 ```bash
 journalctl --user -u g6_switcher.service -n 100 --no-pager
 ```
+If you run G6 Switcher manually, include the output from the terminal instead.
 
 **Screenshots**
 
