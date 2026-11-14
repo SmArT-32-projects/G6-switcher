@@ -667,7 +667,7 @@ def run_setup_wizard(config_file, config_dir):
         print("is missing/corrupted, or in case of audio server query timeouts.")
         safe_vol = prompt_int("Enter a fallback volume percentage", 25)
     else:
-        use_safe = prompt_bool("Always enforce a fixed safe volume when headphones are connected?", True)
+        use_safe = prompt_bool("Always enforce a fixed safe volume when headphones are connected?", False)
         if use_safe:
             safe_vol = prompt_int("Enter safe volume percentage", 25)
         else:
@@ -796,7 +796,7 @@ DEFAULT_CONFIG = {
     },
     "features": {
         "preset_tolerance_mode": "disabled",
-        "use_safe_volume": True,
+        "use_safe_volume": False,
         "safe_volume_percent": 25,
         "save_headphones_volume": True,
         "use_dynamic_limiter": False,
