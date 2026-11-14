@@ -95,11 +95,11 @@ All three presets must already exist in your EasyEffects or PulseEffects install
 
 - `disabled`: Always enforce automatic preset switching on every G6 output switch event.
 - `once`: Ignore automatic preset switching once if a custom preset is active. Subsequent G6 output switch events will resume normal switching.
-- `persistent`: Suspends automatic preset switching entirely as long as a custom preset (any preset other than `presets.headphones` or `presets.speakers`) remains loaded. Automatic switching automatically re-engages as soon as you manually select either the configured headphone or speaker preset in your effects app.
+- `persistent`: Suspends automatic preset switching entirely as long as a custom preset (any preset other than `presets.headphones` or `presets.speakers`) remains loaded. Automatic switching resumes as soon as you manually select either the configured headphone or speaker preset in your effects app.
 
 ### Why use `use_hardware_profiles`?
 
-> **Note:** This feature is exclusively supported on **PipeWire** with **WirePlumber** and requires `amixer` (`alsa-utils`). It is automatically disabled on standalone PulseAudio systems.
+> **Note:** This feature is supported only on **PipeWire** with **WirePlumber** and requires `amixer` (`alsa-utils`). It is automatically disabled on standalone PulseAudio systems.
 
 The optical (S/PDIF) output of the Sound BlasterX G6 is driven by its internal DSP clock, which hardware-locks optical sample rates to a maximum of 48000 Hz / 24-bit. If you connect external speakers or an AV receiver via optical out, but want your headphones to run in **Direct Mode** (using the `Stereo Direct` clock to unlock pristine 384000 Hz / 32-bit playback), this feature manages that transition automatically:
 
