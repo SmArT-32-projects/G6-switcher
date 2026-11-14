@@ -93,6 +93,9 @@ Uninstall the installed copy:
 
 - [Configuration](docs/configuration.md)
 - [Troubleshooting](docs/troubleshooting.md)
+
+Before opening a bug report, please review [Troubleshooting](docs/troubleshooting.md) and [Known limitations](#known-limitations).
+
 - [Report a bug or request a feature](https://github.com/SmArT-32-projects/g6-switcher/issues/new/choose)
 
 Your feedback is highly appreciated!
