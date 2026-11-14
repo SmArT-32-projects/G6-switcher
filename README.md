@@ -50,6 +50,8 @@ You can decline the service installation and keep the script where it is to run 
 python3 g6_switcher.py
 ```
 
+For manual setup, custom configuration options, and the default `config.json` structure, see the [Configuration guide](docs/configuration.md).
+
 ## Service
 
 Show the current status:
@@ -83,6 +85,7 @@ Uninstall the installed copy:
 
 - It is assumed that only one G6 card is physically connected to your machine at the same time.  
 - If both Flatpak and native builds are installed, the script selects the first matching application in this order: EasyEffects Flatpak, PulseEffects Flatpak, EasyEffects native, PulseEffects native. It does not currently provide a separate application-selection setting.
+- The script checks the installed version, background service and interfaces of EasyEffects/PulseEffects only at startup. It does not monitor for application updates or package transitions (e.g. native to Flatpak) while running. Major updates of EasyEffects/PulseEffects may require restarting the switcher service: `systemctl --user restart g6_switcher.service`.
 - Dynamic limiter control requires a Limiter filter that is already present and enabled in the headphone preset. The script cannot add or enable the filter automatically. For clipping protection, disable **Threshold Boost** in the Limiter settings.
 - Dynamic limiter control is unavailable with EasyEffects 8.0.0–8.0.6; the script disables this feature for those versions.
 
