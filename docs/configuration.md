@@ -9,7 +9,7 @@ You can generate and configure this file automatically using the interactive set
 python3 g6_switcher.py --setup
 ```
 
-Or you can create and edit `config.json` manually. After making changes, reload the background service to apply them without interruption:
+Or you can create and edit `config.json` manually. If the background service is installed, reload it to apply changes without interruption:
 
 ```bash
 systemctl --user reload g6_switcher.service
@@ -54,6 +54,65 @@ To create the required udev rule and apply permissions immediately, run:
 ```bash
 echo 'ACTION!="remove", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="041e", ATTRS{idProduct}=="3256", TAG+="uaccess"' | sudo tee /etc/udev/rules.d/70-sound-blaster-g6.rules > /dev/null && sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
+
+---
+
+## Background Service (systemd)
+
+The setup wizard can install and configure the background service automatically. If you prefer to do it manually, follow the steps below.
+
+1. Copy the script to the standard user executable directory and make it executable:
+
+   ```bash
+   install -Dm755 ./g6_switcher.py "$HOME/.local/bin/g6_switcher"
+   ```
+
+2. Create the unit file with the following contents:
+
+   ```bash
+   nano ~/.config/systemd/user/g6_switcher.service
+   ```
+
+   ```ini
+   [Unit]
+   Description=Sound BlasterX G6 Switcher
+   After=graphical-session.target pipewire.service pipewire-pulse.service pulseaudio.service
+   Wants=pipewire.service pipewire-pulse.service pulseaudio.service
+   # Stop restarting if it crashes 3 times within 60 seconds
+   StartLimitBurst=3
+   StartLimitIntervalSec=60
+
+   [Service]
+   Type=notify
+   NotifyAccess=main
+   Environment="PYTHONUNBUFFERED=1"
+   ExecStart=%h/.local/bin/g6_switcher --daemon
+   ExecReload=/bin/kill -HUP $MAINPID
+   Restart=on-failure
+   RestartSec=5
+   TimeoutStartSec=15
+
+   # Security Hardening
+   NoNewPrivileges=yes
+   LockPersonality=yes
+   ProtectKernelTunables=yes
+   ProtectControlGroups=yes
+   RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+   SystemCallArchitectures=native
+
+   [Install]
+   WantedBy=graphical-session.target
+   ```
+
+3. Enable and start the service:
+
+   ```bash
+   systemctl --user daemon-reload
+   ```
+
+   ```bash
+   systemctl --user enable --now g6_switcher.service
+   ```
 
 ---
 
