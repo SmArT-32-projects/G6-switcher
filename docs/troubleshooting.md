@@ -1,12 +1,12 @@
 # Troubleshooting
 
-## First of all
+## General checks
 
-Carefully review the [known limitations](https://github.com/SmArT-32-projects/G6-switcher/tree/main#known-limitations) section.
+### Review known limitations
 
----
+Before troubleshooting, carefully review the [Known Limitations](https://github.com/SmArT-32-projects/G6-switcher/tree/main#known-limitations) section to make sure the observed behavior is not expected.
 
-## Check service status and logs
+### Check service status and logs
 
 Check whether the background service is running:
 
@@ -14,22 +14,30 @@ Check whether the background service is running:
 systemctl --user status g6_switcher.service
 ```
 
-View recent logs:
+To enable detailed debug output, set `"log_level": "DEBUG"` in `~/.config/g6_switcher/config.json` and reload the service:
+
+```bash
+systemctl --user reload g6_switcher.service
+```
+
+View the 100 most recent log entries:
 
 ```bash
 journalctl --user -u g6_switcher.service -n 100 --no-pager
 ```
 
-For live real-time logs, add the `-f` flag:
+To follow logs in real time, add the `-f` flag:
 
 ```bash
 journalctl --user -u g6_switcher.service -f
 ```
 
-To enable detailed debug output, set `"log_level": "DEBUG"` in `~/.config/g6_switcher/config.json` and reload the service:
+### Check whether the issue is related to G6 switcher
+
+If applicable, temporarily stop the service and try to reproduce the issue under the same conditions:
 
 ```bash
-systemctl --user reload g6_switcher.service
+systemctl --user stop g6_switcher.service
 ```
 
 ---
